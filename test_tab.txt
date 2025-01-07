@@ -1,0 +1,4 @@
+name\tage\tcity
+David\t40\tHouston
+Eva\t28\tPhoenix
+Frank\t33\tPhiladelphia 

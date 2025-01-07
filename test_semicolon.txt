@@ -1,0 +1,4 @@
+name;age;city
+Grace;22;San Francisco
+Henry;29;Seattle
+Ivy;31;Boston 
