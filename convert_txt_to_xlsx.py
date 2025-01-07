@@ -11,11 +11,18 @@ def detect_encoding(file_path):
         result = chardet.detect(f.read())
     return result['encoding']
 
-def detect_delimiter(file_path, encoding):
+def detect_delimiter(file_path, encoding, default_delimiter=','):
     with open(file_path, 'r', encoding=encoding) as f:
         sample = f.read(1024)
         sniffer = csv.Sniffer()
-        delimiter = sniffer.sniff(sample).delimiter
+        try:
+            delimiter = sniffer.sniff(sample).delimiter
+            # 如果检测到的分隔符是空格，可能需要手动确认
+            if delimiter.isspace():
+                print(f"检测到 {file_path} 使用空格作为分隔符")
+        except csv.Error:
+            print(f"无法检测到 {file_path} 的分隔符，使用默认分隔符 '{default_delimiter}'")
+            delimiter = default_delimiter
     return delimiter
 
 def add_borders_to_excel(file_path):
@@ -43,14 +50,17 @@ def convert_txt_to_xlsx():
         # 检测文件的分隔符
         delimiter = detect_delimiter(txt_file, encoding)
         
-        # 读取txt文件
-        df = pd.read_csv(txt_file, sep=delimiter, encoding=encoding)
-        
         # 生成xlsx文件名（将.txt替换为.xlsx）
         xlsx_file = os.path.splitext(txt_file)[0] + '.xlsx'
         
-        # 保存为xlsx文件
-        df.to_excel(xlsx_file, index=False)
+        # 创建一个 Excel writer 对象
+        with pd.ExcelWriter(xlsx_file, engine='openpyxl') as writer:
+            # 分块读取txt文件
+            startrow = 0
+            for chunk in pd.read_csv(txt_file, sep=delimiter, encoding=encoding, chunksize=10000):
+                # 将每个块写入 Excel 文件
+                chunk.to_excel(writer, index=False, startrow=startrow, header=startrow == 0)
+                startrow += len(chunk)
         
         # 为所有单元格添加边框
         add_borders_to_excel(xlsx_file)

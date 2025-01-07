@@ -1,4 +1,0 @@
-name,age,city
-Jack,45,Miami
-Kathy,27,Dallas
-Leo,38,Atlanta 
